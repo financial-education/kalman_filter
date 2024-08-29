@@ -1,11 +1,13 @@
-#+title: The Kalman Filter: An Applied Introduction
-#+author: Matt Brigida, Ph.D.
-#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
-#+HTML_HEAD: <style>pre.src{background:#343131;color:white;} </style>
+---
+title: "The Kalman Filter: An Applied Introduction"
+author: "Matt Brigida"
+output: html_document
+runtime: shiny
+---
 
-** Is a Company's Market Risk Constant?
+## Is a Company's Market Risk Constant?
 
-Every undergraduate Finance student learns the CAPM, and at some point ([[http://financial-education.github.io/the_CAPM_intro_version][similar to this presentation]]) estimates a firm's market risk ($\beta$) with the following regression:
+Every undergraduate Finance student learns the CAPM, and at some point ([similar to this presentation](https://micfm.shinyapps.io/The_CAPM/)) estimates a firm's market risk ($\beta$) with the following regression:
 
 $R_{s,t} = \alpha + \beta R_{m,t} + e_t$
 
@@ -13,19 +15,20 @@ where $R_{s,t}$, and $R_{m,t}$, are the return on some stock, and the return on 
 
 Often the interested student will ask if market risk is really constant as the above equation assumes.  We could investigate this by breaking up a long time period into smaller subintervals, and estimating the above equation for each subinterval.
 
-**  Interactive App
+
+
+##  Interactive App
 
 Input a ticker in the app on the following slide, and it will break the last 5 years into 30 day periods, estimate $\beta$ over each period, and plot the time series of $\beta$s.
 
 -  The default shows Citigroup's (ticker 'C') $\beta$ coefficient over time.  It starts at about 1 in 2010, and increases to about 4 by 2011.  From 2012 onward it ranges from 1 to 2.5.  Clearly there is significant variation in Citigroup's market risk over time.
 
--  For a formal test of instability in estimated coefficients see [[[https://github.com/Matt-Brigida/BDE_75/blob/master/BDE_75_test.R][the code for]]] the [[[https://scholar.google.com/scholar?hl=en&q=brown+durbin+evans+1975][Brown, Durbin, and Evans (1975)]]] test.
+-  For a formal test of instability in estimated coefficients see [the code for](https://github.com/Matt-Brigida/BDE_75/blob/master/BDE_75_test.R) the [Brown, Durbin, and Evans (1975)](https://scholar.google.com/scholar?hl=en&q=brown+durbin+evans+1975) test.
 
-**
 
-To see the original R/Shiny app for the following code see the source code for this document [insert link].
 
-#+begin_src R :exports none
+## 
+
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 library(quantmod)
 library(dygraphs)
@@ -70,10 +73,10 @@ renderDygraph({
 
 })
 ```
-#+end_src
 
 
-** Model Form
+
+## Model Form
 
 In addition to non-constant market risk, the beta coefficient may vary also because of ommitted variables---other factors are known to affect the return on stock.
 
@@ -81,24 +84,34 @@ In addition to non-constant market risk, the beta coefficient may vary also beca
 
 -  That said, whatever factors you use may have a time-varying effect on asset return, and thus they can be modeled using the method below.
 
-** A More Formal Approach
+
+
+
+## A More Formal Approach
 
 Instead of running a separate regression over short intervals (assuming the coefficient is constant over each interval), we can formally assume that the coefficient may vary.  We do so by writing the equation in [state space]() form.  We then construct the likelihood function using [prediction error decomposition]().  
 
 
+### Time-Varying Beta
+
+
+### Conditional Volatility
+
+Not only does the Kalman Filter give us an estimate of a stock's time-varying beta, but it also gives us an estimate the of uncertainy of the beta.
 
 
 
 
 
- 
 
 
-**
+
+##
 
 <!-- app showing time varying beta from the K filter -->
 
- 
+
+
 
 
 
