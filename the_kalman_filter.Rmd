@@ -15,8 +15,7 @@ $R_{s,t} = \alpha + \beta R_{m,t} + e_t$
 
 where $R_{s,t}$, and $R_{m,t}$, are the return on some stock, and the return on the market, at time $t$.
 
-Often the interested student will ask if market risk is really constant as the above equation assumes.  We could investigate this by breaking up a long time period into smaller subintervals, and estimating the above equation for each subinterval.
-
+Often the interested student will ask if market risk is really constant as the above equation assumes.  We could investigate this by breaking up a long time period into smaller subintervals, and estimating the above equation for each subinterval.  This is a sensible first approach.
 
 
 ##  Interactive App
@@ -25,7 +24,6 @@ Input a ticker in the app on the following slide, and it will break the last 5 y
 
 -  The default shows Citigroup's (ticker 'C') $\beta$ coefficient over time.  It starts at about 1 in 2010, and increases to about 4 by 2011.  From 2012 onward it ranges from 1 to 2.5.  Clearly there is significant variation in Citigroup's market risk over time.
 
--  For a formal test of instability in estimated coefficients see [the code for](https://github.com/Matt-Brigida/BDE_75/blob/master/BDE_75_test.R) the [Brown, Durbin, and Evans (1975)](https://scholar.google.com/scholar?hl=en&q=brown+durbin+evans+1975) test.
 
 
 
@@ -77,15 +75,9 @@ renderDygraph({
 ```
 
 
+## BDE 1975 Test
 
-## Model Form
-
-In addition to non-constant market risk, the beta coefficient may vary also because of ommitted variables---other factors are known to affect the return on stock.
-
--  Below we don't intend to provide a complete model of asset returns (which is an ongoing area of research).
-
--  That said, whatever factors you use may have a time-varying effect on asset return, and thus they can be modeled using the method below.
-
+For a formal test of instability in estimated coefficients we would use the Brown, Durbin, and Evans (1975) test.  See [this code for an implementation in R](https://github.com/Matt-Brigida/BDE_75/blob/master/BDE_75_test.R) of the [Brown, Durbin, and Evans (1975)](https://scholar.google.com/scholar?hl=en&q=brown+durbin+evans+1975) test.
 
 
 
@@ -97,13 +89,29 @@ Instead of running a separate regression over short intervals (assuming the coef
 ### Time-Varying Beta
 
 
-```{r, echo=FALSE}
+$R_{s,t} = \alpha_t + \beta_t R_{m,t} + e_t$
 
+where:
+
+$\alpha_t = \mu + \gamma \alpha_{t-1} + \eta_t$
+
+$\beta_t = \nu + \xi \beta_{t-1} + \epsilon_t$
+
+where $\mu$, $\gamma$, $\nu$, and $\xi$ are hyperparameters which can be estimated via maximum likelihood.  Note, many implementations of the Kalman Filter will assume the hyperparameters are already known, so when looking at a software implementation pay close attention to whether the hyperparameters are estimated.
+
+I recommend using [Python's Statsmodels implementation](https://www.statsmodels.org/stable/generated/statsmodels.tsa.statespace.kalman_filter.KalmanFilter.html) which will estimate the hyperparameters.
+
+I'll omit the math of the Kalman Filter.  My recommendation is estimate the model in Statsmodels, and learn the math later.
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(highcharter)
 textInput("symb", "Ticker", "C")
 dateRangeInput("dates", "Date range", start = "2015-01-01", end = as.character(Sys.Date()))   
 sliderInput("init", "Initial Beta Value", min = -5, max = 5, value = 1, step= 0.1)
 sliderInput("init.sd", "Initial Standard Deviation of Beta", min = 0.01, max = 1, value = 0.05, step= 0.01)
-plotOutput("distPlot")
+#plotOutput("distPlot")
+highchartOutput("distPlot")
 ```
 
 
@@ -111,8 +119,10 @@ plotOutput("distPlot")
 library(quantmod)
 library(compiler)
 library(xts)
+library(tsbox)
 
-output$distPlot <- renderPlot({
+#output$distPlot <- renderPlot({
+output$distPlot <- renderHighchart({
     lik <- function(theta, market, stock){
 
 
@@ -231,8 +241,15 @@ beta_tt <- rep(0, sampleLength)
 
     kalman_filtered_beta <- as.xts(beta_tt, order.by = index(rets))
     forecast_variance <- as.xts(Htt_1, order.by = index(rets))
-
-    chartSeries(kalman_filtered_beta, theme = "white")
+     
+    hc <- hchart(ts_ts(kalman_filtered_beta)) |>
+      hc_add_theme(hc_theme_darkunica()) |>
+      hc_title(text = "Time-Varying Beta")
+    
+    hc
+    #chartSeries(kalman_filtered_beta, theme = "white")
+    #chartSeries(kalman_filtered_beta, theme = "black")
+    
  })
 
 ```
@@ -258,3 +275,8 @@ Not only does the Kalman Filter give us an estimate of a stock's time-varying be
 
 
 <!-- next presentation:  show the time series of the distribution of beta calculated from the K filter -- see the density.txt file -->
+
+## A Note on Model Form
+
+In addition to non-constant market risk, the beta coefficient may vary also because of ommitted variables---other factors are known to affect the return on stock.
+
